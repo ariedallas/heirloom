@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Heirloom"
+description = "Pomodoro-style interval timers"
+version = "1.0.0"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+
+dependencies = [
+    "playsound3"
+]
+
+
+[project.scripts]
+heirloom = "heirloom.lumo_heirloom:main"
