@@ -1,16 +1,10 @@
-import os
 import playsound3
 import subprocess
 import threading
 import time
 
-# import LUMO_LIBRARY.lumo_animationlibrary as l_animators
-# import LUMO_LIBRARY.lumo_filehandler as l_files
-# import LUMO_LIBRARY.lumo_json_utils as l_json_utils
-# import LUMO_LIBRARY.lumo_menus_data as l_menus_data
-# import LUMO_LIBRARY.lumo_menus_funcs as l_menus_funcs
-
-# selected_sound = os.path.join(l_files.sounds_folder, "block.mp3")
+import heirloom.printers as printers
+import heirloom.utils as utils
 
 
 def play_sound(soundfile):
@@ -21,25 +15,25 @@ class Data:
 
     @classmethod
     def load_data(cls):
-        Data.settings = l_files.get_json_settings()
-        Data.pom_settings = Data.settings["pomodoro"]
-        Data.default_preset = Data.pom_settings.get("default")
+        Data.settings = utils.get_json_settings(utils.settings_path)
+
+        Data.default_preset = Data.settings.get("default")
         Data.default_name = Data.default_preset.title().replace("_", " ")
         Data.default_marker = 0 if Data.default_preset == "preset_1" else 1
 
         Data.toggle_name = "Preset 2" if Data.default_preset == "preset_1" else "Preset 1"
         Data.toggle_setting = "preset_2" if Data.default_preset == "preset_1" else "preset_1"
-        Data.p1_tuple = Data.pom_settings["pom_presets"].get("preset_1")
-        Data.p2_tuple = Data.pom_settings["pom_presets"].get("preset_2")
+        Data.p1_tuple = Data.settings["pom_presets"].get("preset_1")
+        Data.p2_tuple = Data.settings["pom_presets"].get("preset_2")
         Data.p1_time, Data.p1_break = Data.p1_tuple[0], Data.p1_tuple[1]
         Data.p2_time, Data.p2_break = Data.p2_tuple[0], Data.p2_tuple[1]
 
-        Data.default_timer = Data.pom_settings["pom_presets"].get(Data.default_preset)
+        Data.default_timer = Data.settings["pom_presets"].get(Data.default_preset)
 
         Data.SETUP_MENU = [f"Preset 1:  {int(Data.p1_time)} min. / {int(Data.p1_break)} min. break",
                            f"Preset 2:  {int(Data.p2_time)} min. / {int(Data.p2_break)} min. break",
-                           "Set custom pomodoro",
-                           "Pomodoro settings"]
+                           "Set custom focus / break",
+                           "Settings"]
 
         Data.FOCUS_MENU = ["Preset break:",
                            "Break for 7 min.",
@@ -47,9 +41,9 @@ class Data:
                            "Break for custom amount"]
 
         Data.BREAK_MENU = ["Start next round:",
-                           "Start new custom pomodoro"]
+                           "Set new custom focus / break"]
 
-        Data.SETTINGS_MENU = [f"Toggle pomodoro default to ➝ {Data.toggle_name}",
+        Data.SETTINGS_MENU = [f"Toggle default to ➝ {Data.toggle_name}",
                               "Edit Preset 1",
                               "Edit Preset 2"]
 
@@ -68,21 +62,18 @@ class Data:
 
 class Menu:
     def __init__(self, menu):
-        self.menus_combined = l_menus_funcs.prep_menu_tuple(menu)
-        self.dict_menu = self.menus_combined[0]
-        self.list_menu = self.menus_combined[1]
+        self.dict_menu, self.list_menu = utils.prep_menu_tuple(menu)
 
 
     @classmethod
     def clear(cls):
         subprocess.run(["clear"], shell=True)
-        print("\n")
 
 
     @classmethod
     def program_header(cls):
         print()
-        print("POMODORO")
+        print("HEIRLOOM")
         print()
 
 
@@ -99,19 +90,21 @@ class Menu:
 
             print(f"  {header_title.title()}")
             print()
-            l_animators.list_printer(list_menu_updated, indent_amt=2, speed_interval=0)
+            printers.list_printer(list_menu_updated, indent_amt=2, speed_interval=0)
         else:
             print(f"  {header_title.title()}")
             print()
-            l_animators.list_printer(self.list_menu, indent_amt=2, speed_interval=0)
+            printers.list_printer(self.list_menu, indent_amt=2, speed_interval=0)
 
         if show_quit or show_exit:
             print()
 
         if show_exit:
-            l_animators.list_printer(l_menus_data.SIMPLE_EXIT_LIST, indent_amt=2, speed_interval=0)
+            exit_list = printers.dict_to_list(utils.EXIT_DICT)
+            printers.list_printer(exit_list, indent_amt=2, speed_interval=0)
         if show_quit:
-            l_animators.list_printer(l_menus_data.QUIT_MENU_LIST, indent_amt=2, speed_interval=0)
+            quit_list = printers.dict_to_list(utils.QUIT_DICT)
+            printers.list_printer(quit_list, indent_amt=2, speed_interval=0)
 
         if show_quit or show_exit:
             print()
@@ -130,15 +123,17 @@ class Menu:
 
         print(f"  {header_title.title()}")
         print()
-        l_animators.list_printer(list_menu_updated, indent_amt=2, speed_interval=0)
+        printers.list_printer(list_menu_updated, indent_amt=2, speed_interval=0)
 
         if show_quit or show_exit:
             print()
 
         if show_exit:
-            l_animators.list_printer(l_menus_data.SIMPLE_EXIT_LIST, indent_amt=2, speed_interval=0)
+            exit_list = printers.dict_to_list(utils.EXIT_DICT)
+            printers.list_printer(exit_list, indent_amt=2, speed_interval=0)
         if show_quit:
-            l_animators.list_printer(l_menus_data.QUIT_MENU_LIST, indent_amt=2, speed_interval=0)
+            quit_list = printers.dict_to_list(utils.QUIT_DICT)
+            printers.list_printer(quit_list, indent_amt=2, speed_interval=0)
 
         if show_quit or show_exit:
             print()
@@ -150,17 +145,15 @@ class Menu:
             default_action_choice = menu_options[marker] + " ➝ (Default action)"
             list_menu_updated = menu_options.copy()
             list_menu_updated[marker] = default_action_choice
-            l_animators.list_printer(list_menu_updated, indent_amt=2, speed_interval=0)
+            printers.list_printer(list_menu_updated, indent_amt=2, speed_interval=0)
         else:
 
-            l_animators.list_printer(menu_options, indent_amt=2, speed_interval=0)
+            printers.list_printer(menu_options, indent_amt=2, speed_interval=0)
 
 
     def menu_update_prepend(self, option, var_menu):
         updated_menu = [option] + var_menu
-        self.menus_combined = l_menus_funcs.prep_menu_tuple(updated_menu)
-        self.dict_menu = self.menus_combined[0]
-        self.list_menu = self.menus_combined[1]
+        self.dict_menu, self.list_menu = utils.prep_menu_tuple(updated_menu)
 
 
     def lookup_user_choice(self, user_input):
@@ -179,10 +172,10 @@ class Menu:
     @staticmethod
     def ask(prompt, show_help_msg=True):
         if show_help_msg:
-            l_animators.list_printer(["To use default action, type 'return'",
-                                      "or 'enter' without typing a letter first"]
-                                     , indent_amt=2
-                                     , speed_interval=0)
+            printers.list_printer(["To use default action, type 'return'",
+                                   "or 'enter' without typing a letter first"]
+                                  , indent_amt=2
+                                  , speed_interval=0)
             print()
         user_input = input(f"  {prompt} >  ")
         val = user_input.strip()
@@ -200,7 +193,7 @@ class Menu:
             except ValueError:
                 first_try = False
                 print()
-                l_animators.animate_text("  Try using only numbers (decimals OK)")
+                printers.animate_text("  Try using only numbers (decimals OK)")
                 user_input = input("  How many minutes >  ")
 
 
@@ -273,7 +266,7 @@ class TimerStandard:
 
         Menu.clear()
         Menu.program_header()
-        l_animators.animate_text(f"  Timer paused at {paused_amt} ...")
+        printers.animate_text(f"  Timer paused at {paused_amt} ...")
         print()
         Menu.simple_display(Data.TIMER_PAUSED_MENU, marker=0)
         print()
@@ -294,11 +287,11 @@ class TimerStandard:
         time_is_int = float.is_integer(var_mins)
 
         try:
-            play_sound(selected_sound)
+            play_sound(utils.sound_bell)
         except:
             print()
             print("  Tried to play a sound...")
-            l_animators.list_printer(["But systems are not compatible"], indent_amt=2, finish_delay=.5)
+            printers.list_printer(["But systems are not compatible"], indent_amt=2, finish_delay=.5)
 
         if not time_is_int:
             remaining_whole_mins = (base_mins - 1) if base_mins > 1 else None
@@ -308,7 +301,7 @@ class TimerStandard:
         if clip_top_secs:
             Menu.clear()
             Menu.program_header()
-            l_animators.animate_text(f"  Timer currently on minute: {base_mins}+ ...")
+            printers.animate_text(f"  Timer currently on minute: {base_mins}+ ...")
             print()
             Menu.simple_display(Data.TIMER_RUNNING_MENU, marker=0)
             print("\n  >  ", end=" ")
@@ -323,7 +316,7 @@ class TimerStandard:
             for n in reversed(range(1, (remaining_whole_mins + 1))):
                 Menu.clear()
                 Menu.program_header()
-                l_animators.animate_text(f"  Timer currently on minute: {n} ...")
+                printers.animate_text(f"  Timer currently on minute: {n} ...")
                 print()
                 Menu.simple_display(Data.TIMER_RUNNING_MENU, marker=0)
                 print("\n  >  ", end="")
@@ -340,11 +333,12 @@ class TimerStandard:
         Menu.program_header()
         try:
             for n in range(3):
-                play_sound(selected_sound)
+                play_sound(utils.sound_block)
         except:
             pass
 
         print("  Timer finished.\n  press any key to continue >  ", end="")
+
 
 class TimerDev(TimerStandard):
 
@@ -360,11 +354,11 @@ class TimerDev(TimerStandard):
         time_is_int = float.is_integer(var_mins)
 
         try:
-            play_sound(selected_sound)
+            play_sound(utils.sound_bell)
         except:
             print()
             print("  Tried to play a sound...")
-            l_animators.list_printer(["But systems are not compatible"], indent_amt=2, finish_delay=.5)
+            printers.list_printer(["But systems are not compatible"], indent_amt=2, finish_delay=.5)
 
         if not time_is_int:
             remaining_whole_mins = (base_mins - 1) if base_mins > 1 else None
@@ -403,17 +397,14 @@ class TimerDev(TimerStandard):
 
         try:
             for n in range(3):
-                play_sound(selected_sound)
+                play_sound(utils.sound_block)
         except:
             pass
 
         print("  Timer finished.\n  press any key to continue >  ", end="")
 
 
-
-
-
-class PomodoroFlow:
+class HeirloomFlow:
 
     def __init__(self, timer, focus_mins=None, break_mins=None):
 
@@ -444,11 +435,7 @@ class PomodoroFlow:
             if self.quit_marker:
                 break
 
-            if initial_launch:
-                initial_launch = False
-            else:
-                Menu.clear()
-
+            Menu.clear()
             Menu.program_header()
             self.setup_menu.display("setup menu", show_exit=False, marker=Data.default_marker)
             val = Menu.ask("")
@@ -459,20 +446,18 @@ class PomodoroFlow:
                 break
 
             elif user_choice == "EXIT":
-                l_animators.animate_text("  'x' or 'exit' can't be used here", finish_delay=.5)
+                printers.animate_text("  'x' or 'exit' can't be used here", finish_delay=.5)
                 continue
 
             elif not user_choice:
                 print()
-                l_animators.animate_text("  unrecognized option", finish_delay=.5)
+                printers.animate_text("  unrecognized option", finish_delay=.5)
 
                 continue
 
             self.setup_router(user_choice)
 
         print()
-        # NOTE: this feature is non-essential, but could be optional later
-        # l_animators.animate_text_indented("Quit Lumo: Pomodoro", indent_amt=2, finish_delay=.5)
 
 
     def setup_router(self, user_choice):
@@ -486,10 +471,10 @@ class PomodoroFlow:
         elif user_choice == f"Preset 2:  {int(Data.p2_time)} min. / {int(Data.p2_break)} min. break":
             self.focus_mins, self.break_mins = Data.p2_time, Data.p2_break
             self.focus_break_loop()
-        elif user_choice == "Set custom pomodoro":
+        elif user_choice == "Set custom focus / break":
             self.set_custom_pomodoro()
             self.focus_break_loop()
-        elif user_choice == "Pomodoro settings":
+        elif user_choice == "Settings":
             self.go_settings()
 
 
@@ -514,41 +499,41 @@ class PomodoroFlow:
             pass
         elif user_choice == "Start next round / continue":
             pass
-        elif user_choice == "Start new custom pomodoro":
+        elif user_choice == "Set new custom focus / break":
             self.set_custom_pomodoro()
 
 
     def settings_router(self, user_choice):
-        if user_choice == f"Toggle pomodoro default to ➝ {Data.toggle_name}":
-            Data.pom_settings["default"] = Data.toggle_setting
-            l_json_utils.write_json(l_files.settings_fullpath, Data.settings)
+        if user_choice == f"Toggle default to ➝ {Data.toggle_name}":
+            Data.settings["default"] = Data.toggle_setting
+            utils.write_json_settings(utils.settings_path, Data.settings)
             Data.load_data()
             self._reload()
-            l_animators.animate_text(f"  Default preset is now ➝ {Data.default_name}", finish_delay=1)
+            printers.animate_text(f"  Default preset is now ➝ {Data.default_name}", finish_delay=1)
         elif user_choice == "Edit Preset 1":
             print()
             preset_1_timer, _ = Menu.ask_timer("  Preset 1, new main timer amount? >  ")
             preset_1_break = Menu.ask_break("  Preset 1, new break amount? >  ")
             new_preset = [preset_1_timer, preset_1_break]
-            Data.pom_settings["pom_presets"]["preset_1"] = new_preset
+            Data.settings["pom_presets"]["preset_1"] = new_preset
 
-            l_json_utils.write_json(l_files.settings_fullpath, Data.settings)
+            utils.write_json_settings(utils.settings_path, Data.settings)
             Data.load_data()
             self._reload()
 
-            l_animators.animate_text(f"  Preset 1 reset", finish_delay=1)
+            printers.animate_text(f"  Preset 1 reset", finish_delay=1)
         elif user_choice == "Edit Preset 2":
             print()
             preset_2_timer, _ = Menu.ask_timer("  Preset 2, new main timer amount? >  ")
             preset_2_break = Menu.ask_break("  Preset 2, new break amount? >  ")
             new_preset = [preset_2_timer, preset_2_break]
-            Data.pom_settings["pom_presets"]["preset_2"] = new_preset
+            Data.settings["pom_presets"]["preset_2"] = new_preset
 
-            l_json_utils.write_json(l_files.settings_fullpath, Data.settings)
+            utils.write_json_settings(utils.settings_path, Data.settings)
             Data.load_data()
             self._reload()
 
-            l_animators.animate_text(f"  Preset 2 reset", finish_delay=1)
+            printers.animate_text(f"  Preset 2 reset", finish_delay=1)
         else:
             pass
 
@@ -628,7 +613,7 @@ class PomodoroFlow:
                 break
             elif not user_choice:
                 print()
-                l_animators.animate_text("  unrecognized option", finish_delay=.5)
+                printers.animate_text("  unrecognized option", finish_delay=.5)
                 Menu.clear()
                 Menu.program_header()
 
@@ -666,7 +651,7 @@ class PomodoroFlow:
                 break
             elif not user_choice:
                 print()
-                l_animators.animate_text("  unrecognized option", finish_delay=.5)
+                printers.animate_text("  unrecognized option", finish_delay=.5)
                 Menu.clear()
                 Menu.program_header()
 
@@ -692,7 +677,7 @@ class PomodoroFlow:
                 break
             elif not user_choice:
                 print()
-                l_animators.animate_text("  unrecognized option", finish_delay=.5)
+                printers.animate_text("  unrecognized option", finish_delay=.5)
                 Menu.clear()
 
                 continue
@@ -701,26 +686,11 @@ class PomodoroFlow:
             break
 
 
-def main(initial_mins_from_cli=None):
-    print("Hello from main")
-    # Data.load_data()
-    # pomodoro = PomodoroFlow(timer=TimerStandard())
-    #
-    # if initial_mins_from_cli:
-    #     focus_mins, break_mins = initial_mins_from_cli.minutes_focus, initial_mins_from_cli.minutes_break
-    #     valid_focus, valid_break = Data.valid_float(focus_mins), Data.valid_float(break_mins)
-    #     if not (valid_focus and valid_break):
-    #         print()
-    #         l_animators.animate_text_indented(f"Unable to make sense of '{focus_mins}' and '{break_mins}'",
-    #                                           indent_amt=2)
-    #         l_animators.animate_text_indented(f"Going to pomodoro menu...", indent_amt=2, finish_delay=.5)
-    #         pass
-    #     else:
-    #         pomodoro.focus_mins, pomodoro.break_mins = float(focus_mins), float(break_mins)
-    #         pomodoro.focus_break_loop()
-    #         Menu.clear()
-    #
-    # pomodoro.run_setup_loop()
+def main():
+    Data.load_data()
+    program = HeirloomFlow(timer=TimerStandard())
+
+    program.run_setup_loop()
 
 
 if __name__ == "__main__":
