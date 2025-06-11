@@ -1,7 +1,7 @@
 # Heirloom 
 
 ---
-Heirloom is a "pomodoro-style" timer that uses set intervals for focusing and taking a rest. 
+Heirloom is a "pomodoro-style" timer that uses intervals for focusing and taking a rest. 
 <br />
 
 
