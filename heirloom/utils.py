@@ -1,13 +1,21 @@
 import json
 import os
-import pathlib
 import string
 
-PROJ_DIR = pathlib.Path(__file__).parents[1]
+def get_proj_dir():
+    return os.getcwd()
 
-sound_bell = os.path.join(PROJ_DIR, "sounds", "short_bell.mp3")
-sound_block = os.path.join(PROJ_DIR, "sounds", "block.mp3")
-settings_path = os.path.join(PROJ_DIR, "settings.json")
+def get_settings_path():
+    PROJ_DIR = get_proj_dir()
+    return os.path.join(PROJ_DIR, "settings.json")
+
+def get_sound(sound):
+    PROJ_DIR = get_proj_dir()
+    bell = os.path.join(PROJ_DIR, "sounds", "short_bell.mp3")
+    block = os.path.join(PROJ_DIR, "sounds", "block.mp3")
+
+    sounds = dict(bell=bell, block=block)
+    return sounds.get(sound)
 
 LETTERS_CAPS = string.ascii_uppercase
 LETTERS_FILTERED = [L for L in LETTERS_CAPS if not (L == 'Q') and not (L == 'X')]
@@ -27,6 +35,7 @@ def prep_menu_tuple(var_menu):
 
 
 def write_json_settings(json_filename, json_data):
+    settings_path = get_settings_path()
     with open(settings_path, "w+") as fout:
         fout.write(json.dumps(json_data, indent=4))
 
@@ -39,5 +48,4 @@ def get_json_settings(path):
 
 
 if __name__ == '__main__':
-    set = get_json_settings(settings_path)
-    print(set)
+    print("Hello from main")

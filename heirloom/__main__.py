@@ -1,4 +1,5 @@
 import playsound3
+import os
 import subprocess
 import threading
 import time
@@ -15,7 +16,7 @@ class Data:
 
     @classmethod
     def load_data(cls):
-        Data.settings = utils.get_json_settings(utils.settings_path)
+        Data.settings = utils.get_json_settings(utils.get_settings_path())
 
         Data.default_preset = Data.settings.get("default")
         Data.default_name = Data.default_preset.title().replace("_", " ")
@@ -287,7 +288,7 @@ class TimerStandard:
         time_is_int = float.is_integer(var_mins)
 
         try:
-            play_sound(utils.sound_bell)
+            play_sound(utils.get_sound("bell"))
         except:
             print()
             print("  Tried to play a sound...")
@@ -333,7 +334,7 @@ class TimerStandard:
         Menu.program_header()
         try:
             for n in range(3):
-                play_sound(utils.sound_block)
+                play_sound(utils.get_sound("block"))
         except:
             pass
 
@@ -354,7 +355,7 @@ class TimerDev(TimerStandard):
         time_is_int = float.is_integer(var_mins)
 
         try:
-            play_sound(utils.sound_bell)
+            play_sound(utils.get_sound("bell"))
         except:
             print()
             print("  Tried to play a sound...")
@@ -397,7 +398,7 @@ class TimerDev(TimerStandard):
 
         try:
             for n in range(3):
-                play_sound(utils.sound_block)
+                play_sound(utils.get_sound("block"))
         except:
             pass
 
@@ -506,7 +507,7 @@ class HeirloomFlow:
     def settings_router(self, user_choice):
         if user_choice == f"Toggle default to ➝ {Data.toggle_name}":
             Data.settings["default"] = Data.toggle_setting
-            utils.write_json_settings(utils.settings_path, Data.settings)
+            utils.write_json_settings(utils.get_settings_path(), Data.settings)
             Data.load_data()
             self._reload()
             printers.animate_text(f"  Default preset is now ➝ {Data.default_name}", finish_delay=1)
@@ -517,7 +518,7 @@ class HeirloomFlow:
             new_preset = [preset_1_timer, preset_1_break]
             Data.settings["pom_presets"]["preset_1"] = new_preset
 
-            utils.write_json_settings(utils.settings_path, Data.settings)
+            utils.write_json_settings(utils.get_settings_path(), Data.settings)
             Data.load_data()
             self._reload()
 
@@ -529,7 +530,7 @@ class HeirloomFlow:
             new_preset = [preset_2_timer, preset_2_break]
             Data.settings["pom_presets"]["preset_2"] = new_preset
 
-            utils.write_json_settings(utils.settings_path, Data.settings)
+            utils.write_json_settings(utils.get_settings_path(), Data.settings)
             Data.load_data()
             self._reload()
 
@@ -687,6 +688,8 @@ class HeirloomFlow:
 
 
 def main():
+    printers.animate_text(utils.get_settings_path())
+
     Data.load_data()
     program = HeirloomFlow(timer=TimerStandard())
 
